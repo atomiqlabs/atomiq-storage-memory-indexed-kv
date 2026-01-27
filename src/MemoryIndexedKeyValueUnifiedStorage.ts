@@ -8,8 +8,11 @@ import {
 import {PromiseQueue} from "promise-queue-ts";
 import {IKeyValueStorage} from "./IKeyValueStorage";
 
+/** Configuration options for MemoryIndexedKeyValueUnifiedStorage */
 export type MemoryIndexedKeyValueUnifiedStorageOptions = {
+    /** Maximum number of items to process in a single batch operation (default: 100) */
     maxBatchItems?: number;
+    /** Whether to allow queries that cannot use indexes (default: false) */
     allowQueryWithoutIndexes?: boolean;
 };
 
@@ -94,6 +97,11 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
 
     writeQueue: PromiseQueue = new PromiseQueue();
 
+    /**
+     * Creates a new MemoryIndexedKeyValueUnifiedStorage instance
+     * @param storageBackend - The underlying key-value storage backend
+     * @param options - Configuration options
+     */
     constructor(storageBackend: IKeyValueStorage<boolean>, options?: MemoryIndexedKeyValueUnifiedStorageOptions) {
         this.storageBackend = storageBackend;
         this.options = options ?? {};
@@ -292,11 +300,7 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
         }
     }
 
-    /**
-     * Initializes the storage with given indexes and composite indexes
-     * @param indexes
-     * @param compositeIndexes
-     */
+    /** @inheritDoc */
     async init(indexes: UnifiedStorageIndexes, compositeIndexes: UnifiedStorageCompositeIndexes): Promise<void> {
         this.indexes = indexes;
         this.compositeIndexes = compositeIndexes;
@@ -339,13 +343,7 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
         }
     }
 
-    /**
-     * Params are specified in the following way:
-     *  - [[condition1, condition2]] - returns all rows where condition1 AND condition2 is met
-     *  - [[condition1], [condition2]] - returns all rows where condition1 OR condition2 is met
-     *  - [[condition1, condition2], [condition3]] - returns all rows where (condition1 AND condition2) OR condition3 is met
-     * @param params
-     */
+    /** @inheritDoc */
     async query(params: Array<Array<QueryParams>>): Promise<any[]> {
         if(params.length===0) return await this.querySingle([]);
         const results = await Promise.all(params.map(singleParam => this.querySingle(singleParam)));
@@ -359,6 +357,11 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
         });
     }
 
+    /**
+     * Queries storage with a single set of AND conditions
+     * @param params - Array of conditions that must all be met
+     * @returns Array of matching objects
+     */
     async querySingle(params: Array<QueryParams>): Promise<Array<UnifiedStoredObject>> {
         if(params.length===0) {
             //Get all
@@ -447,6 +450,7 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
         return results.flat();
     }
 
+    /** @inheritDoc */
     save(value: any): Promise<void> {
         return this.writeQueue.enqueue(async () => {
             let existingValue: any;
@@ -470,6 +474,7 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
         });
     }
 
+    /** @inheritDoc */
     async saveAll(_values: any[]): Promise<void> {
         return this.writeQueue.enqueue(async () => {
             for(let e=0; e<_values.length; e+=this.options.maxBatchItems) {
@@ -530,6 +535,7 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
     //     // });
     // }
 
+    /** @inheritDoc */
     remove(value: any): Promise<void> {
         return this.writeQueue.enqueue(async () => {
             let existingValue: any;
@@ -550,6 +556,7 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
         });
     }
 
+    /** @inheritDoc */
     removeAll(_values: any[]): Promise<void> {
         return this.writeQueue.enqueue(async () => {
             for(let e=0; e<_values.length; e+=this.options.maxBatchItems) {
