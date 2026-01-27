@@ -4,7 +4,7 @@ import {
     UnifiedStorageCompositeIndexes,
     UnifiedStorageIndexes,
     UnifiedStoredObject
-} from "@atomiqlabs/sdk-lib";
+} from "@atomiqlabs/sdk";
 import {PromiseQueue} from "promise-queue-ts";
 import {IKeyValueStorage} from "./IKeyValueStorage";
 

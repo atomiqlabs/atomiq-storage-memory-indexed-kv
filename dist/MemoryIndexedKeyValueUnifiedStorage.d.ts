@@ -1,8 +1,11 @@
-import { IUnifiedStorage, QueryParams, UnifiedStorageCompositeIndexes, UnifiedStorageIndexes, UnifiedStoredObject } from "@atomiqlabs/sdk-lib";
+import { IUnifiedStorage, QueryParams, UnifiedStorageCompositeIndexes, UnifiedStorageIndexes, UnifiedStoredObject } from "@atomiqlabs/sdk";
 import { PromiseQueue } from "promise-queue-ts";
 import { IKeyValueStorage } from "./IKeyValueStorage";
+/** Configuration options for MemoryIndexedKeyValueUnifiedStorage */
 export type MemoryIndexedKeyValueUnifiedStorageOptions = {
+    /** Maximum number of items to process in a single batch operation (default: 100) */
     maxBatchItems?: number;
+    /** Whether to allow queries that cannot use indexes (default: false) */
     allowQueryWithoutIndexes?: boolean;
 };
 /**
@@ -23,6 +26,11 @@ export declare class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStor
         [compositeIndexIdentifier: string]: Map<string, Set<string>>;
     };
     writeQueue: PromiseQueue;
+    /**
+     * Creates a new MemoryIndexedKeyValueUnifiedStorage instance
+     * @param storageBackend - The underlying key-value storage backend
+     * @param options - Configuration options
+     */
     constructor(storageBackend: IKeyValueStorage<boolean>, options?: MemoryIndexedKeyValueUnifiedStorageOptions);
     protected _get(key: string): Promise<any | null> | (any | null);
     protected _getAll(keys: string[]): Promise<(any | null)[]> | (any | null)[];
@@ -43,23 +51,22 @@ export declare class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStor
     protected _saveObjectIndexes(obj: any): void;
     protected _removeObjectIndexes(obj: any): void;
     protected _updateObjectIndexes(obj: any, existingValue: any): void;
-    /**
-     * Initializes the storage with given indexes and composite indexes
-     * @param indexes
-     * @param compositeIndexes
-     */
+    /** @inheritDoc */
     init(indexes: UnifiedStorageIndexes, compositeIndexes: UnifiedStorageCompositeIndexes): Promise<void>;
-    /**
-     * Params are specified in the following way:
-     *  - [[condition1, condition2]] - returns all rows where condition1 AND condition2 is met
-     *  - [[condition1], [condition2]] - returns all rows where condition1 OR condition2 is met
-     *  - [[condition1, condition2], [condition3]] - returns all rows where (condition1 AND condition2) OR condition3 is met
-     * @param params
-     */
+    /** @inheritDoc */
     query(params: Array<Array<QueryParams>>): Promise<any[]>;
+    /**
+     * Queries storage with a single set of AND conditions
+     * @param params - Array of conditions that must all be met
+     * @returns Array of matching objects
+     */
     querySingle(params: Array<QueryParams>): Promise<Array<UnifiedStoredObject>>;
+    /** @inheritDoc */
     save(value: any): Promise<void>;
+    /** @inheritDoc */
     saveAll(_values: any[]): Promise<void>;
+    /** @inheritDoc */
     remove(value: any): Promise<void>;
+    /** @inheritDoc */
     removeAll(_values: any[]): Promise<void>;
 }

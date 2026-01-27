@@ -63,6 +63,11 @@ function toCompositeIndex(values) {
  *  - uses a single write queue, meaning even concurrent writes are always processed sequentially
  */
 class MemoryIndexedKeyValueUnifiedStorage {
+    /**
+     * Creates a new MemoryIndexedKeyValueUnifiedStorage instance
+     * @param storageBackend - The underlying key-value storage backend
+     * @param options - Configuration options
+     */
     constructor(storageBackend, options) {
         this.writeQueue = new promise_queue_ts_1.PromiseQueue();
         this.storageBackend = storageBackend;
@@ -267,11 +272,7 @@ class MemoryIndexedKeyValueUnifiedStorage {
             this._updateIndex(indexMap, indexOldValue, indexNewValue, obj);
         }
     }
-    /**
-     * Initializes the storage with given indexes and composite indexes
-     * @param indexes
-     * @param compositeIndexes
-     */
+    /** @inheritDoc */
     async init(indexes, compositeIndexes) {
         this.indexes = indexes;
         this.compositeIndexes = compositeIndexes;
@@ -310,13 +311,7 @@ class MemoryIndexedKeyValueUnifiedStorage {
             });
         }
     }
-    /**
-     * Params are specified in the following way:
-     *  - [[condition1, condition2]] - returns all rows where condition1 AND condition2 is met
-     *  - [[condition1], [condition2]] - returns all rows where condition1 OR condition2 is met
-     *  - [[condition1, condition2], [condition3]] - returns all rows where (condition1 AND condition2) OR condition3 is met
-     * @param params
-     */
+    /** @inheritDoc */
     async query(params) {
         if (params.length === 0)
             return await this.querySingle([]);
@@ -330,6 +325,11 @@ class MemoryIndexedKeyValueUnifiedStorage {
             return true;
         });
     }
+    /**
+     * Queries storage with a single set of AND conditions
+     * @param params - Array of conditions that must all be met
+     * @returns Array of matching objects
+     */
     async querySingle(params) {
         if (params.length === 0) {
             //Get all
@@ -418,6 +418,7 @@ class MemoryIndexedKeyValueUnifiedStorage {
         }
         return results.flat();
     }
+    /** @inheritDoc */
     save(value) {
         return this.writeQueue.enqueue(async () => {
             let existingValue;
@@ -441,6 +442,7 @@ class MemoryIndexedKeyValueUnifiedStorage {
             }
         });
     }
+    /** @inheritDoc */
     async saveAll(_values) {
         return this.writeQueue.enqueue(async () => {
             for (let e = 0; e < _values.length; e += this.options.maxBatchItems) {
@@ -499,6 +501,7 @@ class MemoryIndexedKeyValueUnifiedStorage {
     //     }
     //     // });
     // }
+    /** @inheritDoc */
     remove(value) {
         return this.writeQueue.enqueue(async () => {
             let existingValue;
@@ -518,6 +521,7 @@ class MemoryIndexedKeyValueUnifiedStorage {
             this._removeObjectIndexes(existingValue);
         });
     }
+    /** @inheritDoc */
     removeAll(_values) {
         return this.writeQueue.enqueue(async () => {
             for (let e = 0; e < _values.length; e += this.options.maxBatchItems) {

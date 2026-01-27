@@ -21,11 +21,11 @@
   "author": "adambor",
   "license": "ISC",
   "dependencies": {
+    "@atomiqlabs/sdk": "github:atomiqlabs/atomiq-sdk#develop",
     "promise-queue-ts": "^1.0.0"
   },
   "peerDependencies": {
-    "@atomiqlabs/base": ">=11.0.0 <13.0.0",
-    "@atomiqlabs/sdk-lib": ">=15.0.16 <17.0.0"
+    "@atomiqlabs/base": ">=11.0.0 <13.0.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
