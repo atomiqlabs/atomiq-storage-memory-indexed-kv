@@ -14,7 +14,7 @@ export interface IKeyValueStorage<Async extends boolean> {
      * @param key - The key to look up
      * @returns The stored value, or null if not found
      */
-    get(key: string): Async extends true ? Promise<string> : string;
+    get(key: string): Async extends true ? Promise<string | null> : (string | null);
     /**
      * Stores a value at the given key
      * @param key - The key to store under

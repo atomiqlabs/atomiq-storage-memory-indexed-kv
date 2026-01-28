@@ -1,6 +1,6 @@
 {
   "name": "@atomiqlabs/storage-memory-indexed-kv",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "An abstract storage implementation for atomiqlabs SDK, uses in-memory indexes and any provided key-value store as a backend",
   "main": "./dist/index.js",
   "types:": "./dist/index.d.ts",
