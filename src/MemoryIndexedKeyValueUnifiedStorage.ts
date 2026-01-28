@@ -68,7 +68,7 @@ function toCompositeIndex(values: Array<any[]>): Array<any[]> {
         return values[0];
     } else {
         const compositeArray: Array<any[]> = [];
-        const firstValues = values.shift();
+        const firstValues = values.shift()!;
         const restValues = toCompositeIndex(values);
         for(let value of firstValues) {
             for(let restValue of restValues) {
@@ -88,12 +88,15 @@ function toCompositeIndex(values: Array<any[]>): Array<any[]> {
 export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<UnifiedStorageIndexes, UnifiedStorageCompositeIndexes> {
 
     storageBackend: IKeyValueStorage<boolean>;
-    indexes: UnifiedStorageIndexes;
-    compositeIndexes: UnifiedStorageCompositeIndexes;
+    indexes?: UnifiedStorageIndexes;
+    compositeIndexes?: UnifiedStorageCompositeIndexes;
 
-    options: MemoryIndexedKeyValueUnifiedStorageOptions;
-    indexesMaps: {[indexField: string]: Map<any, Set<string>>};
-    compositeIndexesMaps: {[compositeIndexIdentifier: string]: Map<string, Set<string>>};
+    options: {
+        maxBatchItems: number;
+        allowQueryWithoutIndexes: boolean;
+    };
+    indexesMaps?: {[indexField: string]: Map<any, Set<string>>};
+    compositeIndexesMaps?: {[compositeIndexIdentifier: string]: Map<string, Set<string>>};
 
     writeQueue: PromiseQueue = new PromiseQueue();
 
@@ -104,8 +107,11 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
      */
     constructor(storageBackend: IKeyValueStorage<boolean>, options?: MemoryIndexedKeyValueUnifiedStorageOptions) {
         this.storageBackend = storageBackend;
-        this.options = options ?? {};
-        this.options.maxBatchItems ??= 100;
+        this.options = {
+            maxBatchItems: 100,
+            allowQueryWithoutIndexes: false,
+            ...options
+        };
     }
 
     protected _get(key: string): Promise<any | null> | (any | null) {
@@ -246,6 +252,9 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
     }
 
     protected _saveObjectIndexes(obj: any) {
+        if(this.indexes==null || this.indexesMaps==null || this.compositeIndexes==null || this.compositeIndexesMaps==null)
+            throw new Error("Indexes not initialized!");
+
         for(let index of this.indexes) {
             const indexKey = index.key;
             const indexValue = toIndexValue(obj[indexKey]);
@@ -262,6 +271,9 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
     }
 
     protected _removeObjectIndexes(obj: any) {
+        if(this.indexes==null || this.indexesMaps==null || this.compositeIndexes==null || this.compositeIndexesMaps==null)
+            throw new Error("Indexes not initialized!");
+
         for(let index of this.indexes) {
             const indexKey = index.key;
             const indexValue = toIndexValue(obj[indexKey]);
@@ -278,6 +290,9 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
     }
 
     protected _updateObjectIndexes(obj: any, existingValue: any) {
+        if(this.indexes==null || this.indexesMaps==null || this.compositeIndexes==null || this.compositeIndexesMaps==null)
+            throw new Error("Indexes not initialized!");
+
         //Check indexes changed
         for(let index of this.indexes) {
             if(obj[index.key]===existingValue[index.key]) continue; //Not changed
@@ -310,12 +325,12 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
         //Setup indexes
         this.indexesMaps = {};
         indexes.forEach(index => {
-            this.indexesMaps[index.key] = new Map();
+            this.indexesMaps![index.key] = new Map();
         });
 
         this.compositeIndexesMaps = {};
         compositeIndexes.forEach(index => {
-            this.indexesMaps[toCompositeIndexIdentifier(index.keys)] = new Map();
+            this.compositeIndexesMaps![toCompositeIndexIdentifier(index.keys)] = new Map();
         });
 
         let allKeys: string[];
@@ -363,6 +378,9 @@ export class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<Unif
      * @returns Array of matching objects
      */
     async querySingle(params: Array<QueryParams>): Promise<Array<UnifiedStoredObject>> {
+        if(this.indexesMaps==null || this.compositeIndexesMaps==null)
+            throw new Error("Indexes not initialized!");
+
         if(params.length===0) {
             //Get all
             let keys: string[];

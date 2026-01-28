@@ -71,8 +71,11 @@ class MemoryIndexedKeyValueUnifiedStorage {
     constructor(storageBackend, options) {
         this.writeQueue = new promise_queue_ts_1.PromiseQueue();
         this.storageBackend = storageBackend;
-        this.options = options ?? {};
-        this.options.maxBatchItems ??= 100;
+        this.options = {
+            maxBatchItems: 100,
+            allowQueryWithoutIndexes: false,
+            ...options
+        };
     }
     _get(key) {
         const _existingValueStr = this.storageBackend.get(key);
@@ -222,6 +225,8 @@ class MemoryIndexedKeyValueUnifiedStorage {
         this._saveIndex(indexMap, indexNewValue, obj);
     }
     _saveObjectIndexes(obj) {
+        if (this.indexes == null || this.indexesMaps == null || this.compositeIndexes == null || this.compositeIndexesMaps == null)
+            throw new Error("Indexes not initialized!");
         for (let index of this.indexes) {
             const indexKey = index.key;
             const indexValue = toIndexValue(obj[indexKey]);
@@ -236,6 +241,8 @@ class MemoryIndexedKeyValueUnifiedStorage {
         }
     }
     _removeObjectIndexes(obj) {
+        if (this.indexes == null || this.indexesMaps == null || this.compositeIndexes == null || this.compositeIndexesMaps == null)
+            throw new Error("Indexes not initialized!");
         for (let index of this.indexes) {
             const indexKey = index.key;
             const indexValue = toIndexValue(obj[indexKey]);
@@ -250,6 +257,8 @@ class MemoryIndexedKeyValueUnifiedStorage {
         }
     }
     _updateObjectIndexes(obj, existingValue) {
+        if (this.indexes == null || this.indexesMaps == null || this.compositeIndexes == null || this.compositeIndexesMaps == null)
+            throw new Error("Indexes not initialized!");
         //Check indexes changed
         for (let index of this.indexes) {
             if (obj[index.key] === existingValue[index.key])
@@ -284,7 +293,7 @@ class MemoryIndexedKeyValueUnifiedStorage {
         });
         this.compositeIndexesMaps = {};
         compositeIndexes.forEach(index => {
-            this.indexesMaps[toCompositeIndexIdentifier(index.keys)] = new Map();
+            this.compositeIndexesMaps[toCompositeIndexIdentifier(index.keys)] = new Map();
         });
         let allKeys;
         const _allKeys = this.storageBackend.getKeys();
@@ -331,6 +340,8 @@ class MemoryIndexedKeyValueUnifiedStorage {
      * @returns Array of matching objects
      */
     async querySingle(params) {
+        if (this.indexesMaps == null || this.compositeIndexesMaps == null)
+            throw new Error("Indexes not initialized!");
         if (params.length === 0) {
             //Get all
             let keys;

@@ -16,13 +16,16 @@ export type MemoryIndexedKeyValueUnifiedStorageOptions = {
  */
 export declare class MemoryIndexedKeyValueUnifiedStorage implements IUnifiedStorage<UnifiedStorageIndexes, UnifiedStorageCompositeIndexes> {
     storageBackend: IKeyValueStorage<boolean>;
-    indexes: UnifiedStorageIndexes;
-    compositeIndexes: UnifiedStorageCompositeIndexes;
-    options: MemoryIndexedKeyValueUnifiedStorageOptions;
-    indexesMaps: {
+    indexes?: UnifiedStorageIndexes;
+    compositeIndexes?: UnifiedStorageCompositeIndexes;
+    options: {
+        maxBatchItems: number;
+        allowQueryWithoutIndexes: boolean;
+    };
+    indexesMaps?: {
         [indexField: string]: Map<any, Set<string>>;
     };
-    compositeIndexesMaps: {
+    compositeIndexesMaps?: {
         [compositeIndexIdentifier: string]: Map<string, Set<string>>;
     };
     writeQueue: PromiseQueue;
