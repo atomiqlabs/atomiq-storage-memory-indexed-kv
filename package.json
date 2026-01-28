@@ -1,6 +1,6 @@
 {
   "name": "@atomiqlabs/storage-memory-indexed-kv",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "An abstract storage implementation for atomiqlabs SDK, uses in-memory indexes and any provided key-value store as a backend",
   "main": "./dist/index.js",
   "types:": "./dist/index.d.ts",
@@ -21,11 +21,11 @@
   "author": "adambor",
   "license": "ISC",
   "dependencies": {
-    "@atomiqlabs/sdk": "github:atomiqlabs/atomiq-sdk#develop",
     "promise-queue-ts": "^1.0.0"
   },
   "peerDependencies": {
-    "@atomiqlabs/base": ">=11.0.0 <13.0.0"
+    "@atomiqlabs/sdk": ">=8.0.0 <9.0.0",
+    "@atomiqlabs/base": ">=11.0.0 <14.0.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
