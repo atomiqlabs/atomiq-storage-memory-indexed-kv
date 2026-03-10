@@ -17,7 +17,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * # @atomiqlabs/storage-memory-indexed-kv
  *
- * `@atomiqlabs/storage-memory-indexed-kv` is the generic key-value-backed unified swap storage layer for the Atomiq SDK.
+ * `@atomiqlabs/storage-memory-indexed-kv` provides key-value-backed storage adapters for the Atomiq SDK.
  *
  * - swaps are persisted as plain key-value records in your backend
  * - during `init()`, the adapter reads the stored swaps and rebuilds the required simple and composite indexes in memory
@@ -30,9 +30,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * ## What this package provides
  *
  * - `MemoryIndexedKeyValueUnifiedStorage`: SDK-compatible unified swap storage built on top of any key-value backend that implements `IKeyValueStorage`.
+ * - `KeyValueStorageManager`: simple `IStorageManager` adapter for chain storage built on top of `IKeyValueStorage`.
  * - `IKeyValueStorage<Async>`: the backend interface you implement for your own persistent key-value store.
- *
- * This package handles the SDK's `swapStorage` layer only. It does not implement `chainStorageCtor` or a general chain storage manager, which anyway uses a simple key-value store and doesn't require any indexes.
  *
  * ## When to use
  *
@@ -91,6 +90,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * ```typescript
  * import {
  *     IKeyValueStorage,
+ *     KeyValueStorageManager,
  *     MemoryIndexedKeyValueUnifiedStorage
  * } from "@atomiqlabs/storage-memory-indexed-kv";
  *
@@ -133,8 +133,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
  *     }
  * }
  *
- * const storage = new MemoryIndexedKeyValueUnifiedStorage(
+ * const swapStorage = new MemoryIndexedKeyValueUnifiedStorage(
  *     new MyKeyValueStorage("atomiq_sdk_chain_SOLANA_")
+ * );
+ * const storageManager = new KeyValueStorageManager(
+ *     new MyKeyValueStorage(`atomiq_sdk_store_SOLANA_`)
  * );
  * ```
  *
@@ -155,16 +158,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
  *     chains: {
  *         ...
  *     },
- *     bitcoinNetwork: BitcoinNetwork.TESTNET,
+ *     bitcoinNetwork: BitcoinNetwork.MAINNET,
  *     swapStorage: chainId => new MemoryIndexedKeyValueUnifiedStorage(
  *         new MyKeyValueStorage(`atomiq_sdk_chain_${chainId}_`)
+ *     ),
+ *     chainStorageCtor: name => new KeyValueStorageManager(
+ *         new MyKeyValueStorage(`atomiq_sdk_store_${name}_`)
  *     )
  * });
  *
  * await swapper.init();
  * ```
- *
- * If your environment also needs a custom `chainStorageCtor`, provide that separately. This package only covers the unified swap storage layer.
  *
  * ## Options
  *
@@ -178,4 +182,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @packageDocumentation
  */
 __exportStar(require("./MemoryIndexedKeyValueUnifiedStorage"), exports);
+__exportStar(require("./KeyValueStorageManager"), exports);
 __exportStar(require("./IKeyValueStorage"), exports);
